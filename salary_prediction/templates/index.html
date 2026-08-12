@@ -3,52 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Employee Salary Prediction</title>
+  <title>Compensation Compass | Salary Prediction</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">HR INSIGHTS</div>
-    <nav><a href="#predict">Prediction</a><a href="#dashboard">Dashboard</a></nav>
+    <a class="brand" href="#predict"><span class="brand-mark">C</span> COMPASS</a>
+    <nav><a href="#predict">Estimate</a><a href="#dashboard">Insights</a></nav>
   </header>
   <main>
     <section class="hero" id="predict">
-      <p class="eyebrow">EMPLOYEE COMPENSATION TOOL</p>
-      <h1>EMPLOYEE SALARY PREDICTION</h1>
-      <p class="lead">Predict an employee's expected annual salary based on experience, position and working hours.</p>
+      <p class="eyebrow">SMART COMPENSATION PLANNING</p>
+      <h1>Make every salary<br><span>conversation clearer.</span></h1>
+      <p class="lead">Create a thoughtful annual salary estimate using role, career stage, work pattern and performance context.</p>
+      <div class="hero-pills"><span>Role-aware</span><span>Performance-adjusted</span><span>Instant estimate</span></div>
     </section>
     <section class="prediction-layout">
       <form method="post" class="form-card" novalidate>
-        <h2>Employee details</h2>
-        <p class="form-note">Enter realistic work information to generate an estimate.</p>
+        <div class="card-title"><span class="step">01</span><div><h2>Candidate profile</h2><p class="form-note">Add the details that shape the estimate.</p></div></div>
         <label for="position">Position</label>
         <select id="position" name="position" required>
           <option value="">Select a position</option>
           {% for position in positions %}<option value="{{ position }}" {% if values.position == position %}selected{% endif %}>{{ position }}</option>{% endfor %}
         </select>
         <div class="two-columns">
-          <div><label for="experience">Years of Experience</label><input id="experience" name="experience" type="number" min="0" step="0.1" placeholder="e.g. 3" value="{{ values.experience }}" required></div>
-          <div><label for="daily_hours">Working Hours Per Day</label><input id="daily_hours" name="daily_hours" type="number" min="0.1" max="24" step="0.1" placeholder="e.g. 8" value="{{ values.daily_hours }}" required></div>
+          <div><label for="age">Age</label><input id="age" name="age" type="number" min="18" max="75" placeholder="e.g. 28" value="{{ values.age }}" required></div>
+          <div><label for="experience">Experience</label><input id="experience" name="experience" type="number" min="0" step="0.1" placeholder="e.g. 3 years" value="{{ values.experience }}" required></div>
         </div>
-        <label for="weekly_hours">Weekly Working Hours</label>
-        <input id="weekly_hours" name="weekly_hours" type="number" min="0.1" max="168" step="0.1" placeholder="e.g. 40" value="{{ values.weekly_hours }}" required>
-        <button type="submit">PREDICT SALARY</button>
+        <label for="performance_score">Performance score <span class="label-hint">1–5</span></label>
+        <select id="performance_score" name="performance_score" required>
+          <option value="1" {% if values.performance_score == '1' %}selected{% endif %}>1 — Developing</option>
+          <option value="2" {% if values.performance_score == '2' %}selected{% endif %}>2 — Progressing</option>
+          <option value="3" {% if values.performance_score == '3' %}selected{% endif %}>3 — Meets expectations</option>
+          <option value="4" {% if values.performance_score == '4' %}selected{% endif %}>4 — Exceeds expectations</option>
+          <option value="5" {% if values.performance_score == '5' %}selected{% endif %}>5 — Exceptional</option>
+        </select>
+        <p class="input-help">Performance provides a modest adjustment around the role-based model estimate.</p>
+        <div class="two-columns">
+          <div><label for="daily_hours">Hours per day</label><input id="daily_hours" name="daily_hours" type="number" min="0.1" max="24" step="0.1" placeholder="e.g. 8" value="{{ values.daily_hours }}" required></div>
+          <div><label for="weekly_hours">Hours per week</label><input id="weekly_hours" name="weekly_hours" type="number" min="0.1" max="168" step="0.1" placeholder="e.g. 40" value="{{ values.weekly_hours }}" required></div>
+        </div>
+        <button type="submit">Calculate estimate <span>→</span></button>
         {% if error %}<p class="message error" role="alert">{{ error }}</p>{% endif %}
       </form>
       <aside class="result-card">
-        <p class="eyebrow">PREDICTION RESULT</p>
-        <h2>Predicted Annual Salary</h2>
-        {% if result %}<p class="salary">{{ result }}</p><p>Estimated salary based on the information provided.</p>{% else %}<p class="empty-result">Your salary estimate will appear here after you submit the form.</p>{% endif %}
+        <div class="result-icon">✦</div><p class="eyebrow">YOUR COMPENSATION VIEW</p>
+        <h2>Predicted annual salary</h2>
+        {% if result %}<p class="salary">{{ result }}</p><p>Your role-based estimate includes a modest adjustment for the selected performance score.</p>{% else %}<p class="empty-result">Complete the profile to reveal a tailored salary estimate.</p>{% endif %}
+        <div class="result-note"><span>i</span><p>Age is used only for sensible input validation; it does not change the prediction.</p></div>
       </aside>
     </section>
     <section id="dashboard" class="dashboard">
-      <div class="section-heading"><p class="eyebrow">DATA OVERVIEW</p><h2>Salary dashboard</h2></div>
+      <div class="section-heading"><p class="eyebrow">BENCHMARK SNAPSHOT</p><h2>Salary landscape</h2><p>See the patterns behind the estimates, based on the project’s employee dataset.</p></div>
       <div class="metrics">
         <article><span>Total Employees</span><strong>{{ stats.employees }}</strong></article><article><span>Average Salary</span><strong>{{ stats.average_salary }}</strong></article><article><span>Highest Salary</span><strong>{{ stats.highest_salary }}</strong></article><article><span>Lowest Salary</span><strong>{{ stats.lowest_salary }}</strong></article><article><span>Average Experience</span><strong>{{ stats.average_experience }}</strong></article>
       </div>
       {% if stats %}<article class="chart-card"><img src="{{ url_for('static', filename='salary_by_position.png') }}" alt="Average salary by position chart"></article>{% endif %}
     </section>
   </main>
-  <footer>Employee Salary Prediction &middot; A simple academic machine-learning project</footer>
+  <footer><span>COMPASS</span> &middot; Salary intelligence for better conversations</footer>
 </body>
 </html>

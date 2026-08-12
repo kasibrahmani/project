@@ -53,6 +53,12 @@ def dashboard_values(data: pd.DataFrame) -> dict[str, str]:
     }
 
 
+def performance_multiplier(score: float) -> float:
+    """Return a modest, explainable adjustment for a performance score."""
+    # A score of 3 is neutral; each step shifts the base estimate by 3%.
+    return 1 + ((score - 3) * 0.03)
+
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if not DATA_PATH.exists() or not MODEL_PATH.exists():
@@ -66,23 +72,36 @@ def index():
     create_chart(data)
     positions = sorted(data["Position"].dropna().unique())
     result, error = None, None
-    values = {"position": "", "experience": "", "daily_hours": "", "weekly_hours": ""}
+    values = {
+        "position": "", "age": "", "experience": "", "performance_score": "3",
+        "daily_hours": "", "weekly_hours": "",
+    }
 
     if request.method == "POST":
         values = {
             "position": request.form.get("position", "").strip(),
+            "age": request.form.get("age", "").strip(),
             "experience": request.form.get("experience", "").strip(),
+            "performance_score": request.form.get("performance_score", "").strip(),
             "daily_hours": request.form.get("daily_hours", "").strip(),
             "weekly_hours": request.form.get("weekly_hours", "").strip(),
         }
         try:
             if values["position"] not in positions:
                 raise ValueError("Please select a valid position.")
+            age = int(values["age"])
             experience = float(values["experience"])
+            performance_score = float(values["performance_score"])
             daily_hours = float(values["daily_hours"])
             weekly_hours = float(values["weekly_hours"])
+            if age < 18 or age > 75:
+                raise ValueError("Age must be between 18 and 75.")
             if experience < 0:
                 raise ValueError("Years of experience cannot be negative.")
+            if experience > age - 14:
+                raise ValueError("Experience should be realistic for the selected age.")
+            if performance_score < 1 or performance_score > 5:
+                raise ValueError("Performance score must be between 1 and 5.")
             if daily_hours <= 0 or daily_hours > 24:
                 raise ValueError("Working hours per day must be between 0 and 24.")
             if weekly_hours <= 0 or weekly_hours > 168:
@@ -95,7 +114,9 @@ def index():
                 "Working_Hours_Per_Day": daily_hours,
                 "Weekly_Hours": weekly_hours,
             }])
-            result = f"₹{max(0, model.predict(input_data)[0]):,.0f}"
+            base_prediction = model.predict(input_data)[0]
+            prediction = max(0, base_prediction * performance_multiplier(performance_score))
+            result = f"₹{prediction:,.0f}"
         except ValueError as exc:
             error = str(exc)
         except Exception:
